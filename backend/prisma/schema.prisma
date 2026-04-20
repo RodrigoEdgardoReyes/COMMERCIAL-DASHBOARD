@@ -1,0 +1,286 @@
+// Generador del cliente Prisma.
+// Define qué proveedor se usará para generar el cliente de base de datos.
+generator client {
+  provider = "prisma-client"
+  // Ruta de salida opcional para el cliente generado.
+  output   = "../generated/prisma" 
+}
+
+// Configuración del datasource.
+// Se especifica que se usará PostgreSQL como motor de base de datos.
+datasource db {
+  provider = "postgresql"
+
+  // Se definen los esquemas que se utilizarán en la base de datos.
+  schemas = ["public", "raw", "clean", "dwh"]
+  // url      = env("DATABASE_URL") // La cadena de conexión se obtiene de una variable de entorno.
+}
+
+// ==================== ESQUEMA RAW ====================
+
+// Modelo para órdenes en esquema RAW.
+// Representa los datos tal cual vienen del CSV original.
+model raw_orders {
+  order_id                      String  @id @map("order_id") // Clave primaria mapeada desde CSV.
+  customer_id                   String  @map("customer_id")
+  order_status                  String  @map("order_status")
+  order_purchase_timestamp      String  @map("order_purchase_timestamp")
+  order_approved_at             String? @map("order_approved_at")
+  order_delivered_carrier_date  String? @map("order_delivered_carrier_date")
+  order_delivered_customer_date String? @map("order_delivered_customer_date")
+  order_estimated_delivery_date String  @map("order_estimated_delivery_date")
+
+  @@map("orders") // Nombre real de la tabla en la base de datos.
+  @@schema("raw") // Indica que pertenece al esquema raw.
+}
+
+// Modelo para ítems de órdenes en esquema RAW.
+model raw_order_items {
+  order_id            String @map("order_id")
+  order_item_id       Int    @map("order_item_id")
+  product_id          String @map("product_id")
+  seller_id           String @map("seller_id")
+  shipping_limit_date String @map("shipping_limit_date")
+  price               String @map("price")
+  freight_value       String @map("freight_value")
+
+  @@id([order_id, order_item_id]) // Clave compuesta.
+  @@map("order_items")
+  @@schema("raw")
+}
+
+// Modelo para pagos en esquema RAW.
+model raw_order_payments {
+  order_id             String @map("order_id")
+  payment_sequential   Int    @map("payment_sequential")
+  payment_type         String @map("payment_type")
+  payment_installments Int    @map("payment_installments")
+  payment_value        String @map("payment_value")
+
+  @@id([order_id, payment_sequential]) // Clave compuesta.
+  @@map("order_payments")
+  @@schema("raw")
+}
+
+// Modelo para productos en esquema RAW.
+model raw_products {
+  product_id                 String  @id @map("product_id")
+  product_category_name      String? @map("product_category_name")
+  product_name_lenght        Int?    @map("product_name_lenght")
+  product_description_lenght Int?    @map("product_description_lenght")
+  product_photos_qty         Int?    @map("product_photos_qty")
+  product_weight_g           Int?    @map("product_weight_g")
+  product_length_cm          Int?    @map("product_length_cm")
+  product_height_cm          Int?    @map("product_height_cm")
+  product_width_cm           Int?    @map("product_width_cm")
+
+  @@map("products")
+  @@schema("raw")
+}
+
+// Modelo para clientes en esquema RAW.
+model raw_customers {
+  customer_id              String @id @map("customer_id")
+  customer_unique_id       String @map("customer_unique_id")
+  customer_zip_code_prefix String @map("customer_zip_code_prefix")
+  customer_city            String @map("customer_city")
+  customer_state           String @map("customer_state")
+
+  @@map("customers")
+  @@schema("raw")
+}
+
+// Modelo para traducción de categorías en esquema RAW.
+model raw_product_category_name_translation {
+  product_category_name         String @id @map("product_category_name")
+  product_category_name_english String @map("product_category_name_english")
+
+  @@map("product_category_name_translation")
+  @@schema("raw")
+}
+
+// ==================== ESQUEMA CLEAN ====================
+
+// Modelo para órdenes en esquema CLEAN.
+// Convierte los campos de fecha a tipo DateTime.
+model clean_orders {
+  order_id                      String    @id
+  customer_id                   String
+  order_status                  String
+  order_purchase_timestamp      DateTime
+  order_approved_at             DateTime?
+  order_delivered_carrier_date  DateTime?
+  order_delivered_customer_date DateTime?
+  order_estimated_delivery_date DateTime
+
+  @@map("orders")
+  @@schema("clean")
+}
+
+// Modelo para ítems de órdenes en esquema CLEAN.
+// Convierte fechas y valores a tipos correctos.
+model clean_order_items {
+  order_id            String
+  order_item_id       Int
+  product_id          String
+  seller_id           String
+  shipping_limit_date DateTime
+  price               Decimal
+  freight_value       Decimal
+
+  @@id([order_id, order_item_id])
+  @@map("order_items")
+  @@schema("clean")
+}
+
+// Modelo para pagos en esquema CLEAN.
+// Convierte el valor del pago a Decimal.
+model clean_order_payments {
+  order_id             String
+  payment_sequential   Int
+  payment_type         String
+  payment_installments Int
+  payment_value        Decimal
+
+  @@id([order_id, payment_sequential])
+  @@map("order_payments")
+  @@schema("clean")
+}
+
+// Modelo para productos en esquema CLEAN.
+model clean_products {
+  product_id                 String  @id
+  product_category_name      String?
+  product_name_lenght        Int?
+  product_description_lenght Int?
+  product_photos_qty         Int?
+  product_weight_g           Int?
+  product_length_cm          Int?
+  product_height_cm          Int?
+  product_width_cm           Int?
+
+  @@map("products")
+  @@schema("clean")
+}
+
+// Modelo para clientes en esquema CLEAN.
+model clean_customers {
+  customer_id              String @id
+  customer_unique_id       String
+  customer_zip_code_prefix String
+  customer_city            String
+  customer_state           String
+
+  @@map("customers")
+  @@schema("clean")
+}
+
+// Modelo para traducción de categorías en esquema CLEAN.
+model clean_product_category_name_translation {
+  product_category_name         String @id
+  product_category_name_english String
+
+  @@map("product_category_name_translation")
+  @@schema("clean")
+}
+
+// ==================== ESQUEMA DWH / GOLD ====================
+
+// Dimensión de fechas para análisis temporal.
+model dim_date {
+  date_key    Int          @id @default(autoincrement())
+  full_date   DateTime     @unique
+  year        Int
+  month       Int
+  day         Int
+  day_of_week Int
+  fact_sales  fact_sales[] // Relación con tabla de hechos.
+
+  @@map("dim_date")
+  @@schema("dwh")
+}
+
+// Dimensión de clientes para análisis por cliente.
+model dim_customer {
+  customer_key   Int          @id @default(autoincrement())
+  customer_id    String       @unique
+  customer_city  String?
+  customer_state String?
+  fact_sales     fact_sales[]
+
+  @@map("dim_customer")
+  @@schema("dwh")
+}
+
+// Dimensión de productos para análisis por producto.
+model dim_product {
+  product_key                Int          @id @default(autoincrement())
+  product_id                 String       @unique
+  product_category           String?
+  product_name_lenght        Int?
+  product_description_lenght Int?
+  product_photos_qty         Int?
+  product_weight_g           Int?
+  product_length_cm          Int?
+  product_height_cm          Int?
+  product_width_cm           Int?
+  fact_sales                 fact_sales[]
+
+  @@map("dim_product")
+  @@schema("dwh")
+}
+
+// Dimensión de órdenes para análisis por orden.
+model dim_order {
+  order_key                     Int          @id @default(autoincrement())
+  order_id                      String       @unique
+  order_status                  String
+  order_purchase_timestamp      DateTime
+  order_delivered_customer_date DateTime?
+  order_estimated_delivery_date DateTime
+  fact_sales                    fact_sales[]
+
+  @@map("dim_order")
+  @@schema("dwh")
+}
+
+// Tabla de hechos (ventas).
+// Contiene métricas y flags, con relaciones a las dimensiones.
+model fact_sales {
+  sales_key     Int    @id @default(autoincrement())
+  order_id      String
+  order_item_id Int
+
+  // Llaves foráneas a dimensiones.
+  date_key     Int
+  product_key  Int
+  customer_key Int
+  order_key    Int
+
+  // Métricas de negocio.
+  item_price              Decimal
+  freight_value           Decimal
+  payment_value_allocated Decimal
+
+  // Flags de estado.
+  is_delivered Boolean
+  is_canceled  Boolean
+  is_on_time   Boolean
+
+  // Relaciones con dimensiones.
+  dim_date     dim_date     @relation(fields: [date_key], references: [date_key])
+  dim_product  dim_product  @relation(fields: [product_key], references: [product_key])
+  dim_customer dim_customer @relation(fields: [customer_key], references: [customer_key])
+  dim_order    dim_order    @relation(fields: [order_key], references: [order_key])
+
+  // Define una restricción de unicidad compuesta.
+  // Garantiza que la combinación de order_id y order_item_id sea única en la tabla.
+  // Esto asegura que cada fila represente un ítem específico dentro de una orden.
+  @@unique([order_id, order_item_id])
+  // Mapea el modelo Prisma fact_sales al nombre real de la tabla en la base de datos.
+  // Asegura que Prisma se conecte correctamente con la tabla física "fact_sales".
+  @@map("fact_sales")
+  // Indica que este modelo pertenece al esquema "dwh" en PostgreSQL.
+  // Permite organizar las tablas de hechos y dimensiones dentro del esquema de Data Warehouse.
+  @@schema("dwh")
+}
