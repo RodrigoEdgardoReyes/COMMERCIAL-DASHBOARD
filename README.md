@@ -5,15 +5,18 @@ Este proyecto implementa un dashboard analítico sobre el dataset público de Ol
 ## 🚀 Cómo Ejecutar
 
 ### Requisitos
+
 - Docker y Docker Compose instalados.
 
 ### Pasos
+
 1. Clonar el repositorio.
 2. Copiar `.env.example` a `.env`.
 3. Ejecutar `docker-compose up --build`.
 4. Acceder al frontend en `http://localhost:3000` y al backend en `http://localhost:3001/health`.
 
 El comando `up` se encargará de:
+
 - Levantar la base de datos PostgreSQL.
 - Ejecutar las migraciones de Prisma para crear los esquemas `raw`, `clean` y `dwh`.
 - Ejecutar el script de ETL que descarga los CSVs (si no están) y los carga en `raw`, luego los transforma a `clean` y finalmente construye el esquema estrella en `dwh`.
@@ -24,6 +27,7 @@ El comando `up` se encargará de:
 ## 🏛️ Arquitectura
 
 ### Backend (Node.js + Express + TypeScript)
+
 Arquitectura Hexagonal (Puertos y Adaptadores):
 
 - **`src/domain`**: Entidades de negocio y contratos de repositorios.
@@ -34,6 +38,7 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 **Regla crítica cumplida:** El backend consulta únicamente el esquema `dwh`.
 
 ### Frontend (Next.js 14 + TypeScript + TailwindCSS)
+
 - App Router de Next.js.
 - Componentes de servidor y cliente.
 - Consumo de API vía `fetch`.
@@ -44,6 +49,7 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 ## 📂 Modelo de Datos y ETL
 
 ### Tablas cargadas en `raw`
+
 - `raw_orders`
 - `raw_order_items`
 - `raw_order_payments`
@@ -52,11 +58,13 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 - `raw_product_category_name_translation`
 
 ### Reglas de limpieza (`clean`)
+
 - Conversión de tipos `TEXT` → `TIMESTAMP`, `DECIMAL`, `INT`.
 - Manejo de valores nulos (`NULL` en campos opcionales).
 - Normalización de categorías y traducciones.
 
 ### Definición del Star Schema (`dwh`)
+
 - **Grano de `fact_sales`**: 1 fila por ítem de orden (`order_id` + `order_item_id`).
 - **Dimensiones**:
   - `dim_date` (atributos de fecha).
@@ -118,9 +126,6 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 | customer_key   |        |        | product_key      |
 +--------+-------+        |        +---------+--------+
          |                |                  |
-         |                |                  |
-         |                |                  |
-         |                |                  |
          v                v                  v
                 +-------------------+
                 |    fact_sales     |
@@ -133,8 +138,7 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
                 |     dim_order     |
                 | order_key, status |
                 +-------------------+
-
-
+```
 
 ## 📐 Diagrama del Modelo Estrella Visual
 
@@ -198,7 +202,7 @@ erDiagram
     dim_customer ||--o{ fact_sales : "customer_key"
     dim_product ||--o{ fact_sales : "product_key"
     dim_order ||--o{ fact_sales : "order_key"
-
+```
 
 ## 🔄 Diagrama de Flujo ETL
 
@@ -215,3 +219,34 @@ flowchart TD
     classDef raw fill:#f9f,stroke:#333,stroke-width:2px;
     classDef clean fill:#bbf,stroke:#333,stroke-width:2px;
     classDef dwh fill:#bfb,stroke:#333,stroke-width:2px;
+```
+
+## Arquitectura Backend(Hexagonal)
+
+flowchart TB
+subgraph Domain
+D1[Entidades de negocio]
+D2[Interfaces (Ports)]
+end
+
+    subgraph Application
+        A1[Casos de Uso]
+    end
+
+    subgraph Infrastructure
+        I1[PrismaSalesRepository]
+        I2[Conexión a PostgreSQL (DWH)]
+    end
+
+    subgraph Adapters
+        H1[HTTP Controllers (Express)]
+        H2[DTO Validation]
+    end
+
+    %% Relaciones
+    D1 --> D2
+    A1 --> D2
+    I1 --> D2
+    H1 --> A1
+    H2 --> H1
+```
