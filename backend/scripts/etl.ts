@@ -1,20 +1,14 @@
-// Este script etl que usara prisma para insertar datos
-// La lógica principal del script será: leer los archivos CSVs, transformarlos y poblar las tablas.
-
-// Importa PrismaClient desde el cliente generado por Prisma.
-// Esto permite interactuar con la base de datos usando los modelos definidos en schema.prisma.
+import "dotenv/config";
+// Importa PrismaClient desde el cliente generado por Prisma. Esto permite interactuar con la base de datos usando los modelos definidos en schema.prisma.
 import { PrismaClient } from "../generated/prisma/client.js";
 
-// Importa el módulo fs (File System) de Node.js.
-// Se utiliza para leer archivos desde el sistema, en este caso los CSV.
+// Importa el módulo fs (File System) de Node.js. Se utiliza para leer archivos desde el sistema, en este caso los CSV.
 import fs from "fs";
 
-// Importa la librería csv-parse.
-// Esta librería convierte el contenido de los archivos CSV en objetos JavaScript con columnas nombradas.
+// Importa la librería csv-parse. Esta librería convierte el contenido de los archivos CSV en objetos JavaScript con columnas nombradas.
 import { parse } from "csv-parse";
 
-// Importa PrismaPg, el adaptador para PostgreSQL.
-// Este adaptador conecta Prisma con la base de datos PostgreSQL usando la cadena de conexión.
+// Importa PrismaPg, el adaptador para PostgreSQL. Este adaptador conecta Prisma con la base de datos PostgreSQL usando la cadena de conexión.
 import { PrismaPg } from "@prisma/adapter-pg";
 
 // Configuración de Prisma con el adaptador PostgreSQL.
@@ -33,7 +27,9 @@ const prisma = new PrismaClient({
 // Se usa fs.createReadStream para leer el archivo y csv-parse para convertirlo en objetos.
 async function loadRawOrders() {
   // Se crea un parser que lee el archivo CSV y lo convierte en filas con columnas nombradas.
-  const parser = fs.createReadStream("data/olist_orders_dataset.csv").pipe(parse({ columns: true }));
+  const parser = fs
+    .createReadStream("data/olist_orders_dataset.csv")
+    .pipe(parse({ columns: true }));
   // Se inicializa un arreglo vacío para almacenar las filas procesadas.
   const rows: any[] = [];
   // Se recorre cada fila del parser de manera asíncrona.
@@ -51,7 +47,12 @@ async function loadRawOrders() {
     });
   }
   // Se insertan todas las filas en la tabla raw_orders usando Prisma.
-  await prisma.raw_orders.createMany({ data: rows });
+  //await prisma.raw_orders.createMany({ data: rows });
+  await prisma.raw_orders.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
+
   // Se imprime en consola cuántas filas fueron cargadas.
   console.log("RAW Orders cargados:", rows.length);
 }
@@ -60,7 +61,9 @@ async function loadRawOrders() {
 // Función para cargar los ítems de las órdenes desde el CSV correspondiente.
 async function loadRawOrderItems() {
   // Se crea el parser para leer el archivo olist_order_items_dataset.csv.
-  const parser = fs.createReadStream("data/olist_order_items_dataset.csv").pipe(parse({ columns: true }));
+  const parser = fs
+    .createReadStream("data/olist_order_items_dataset.csv")
+    .pipe(parse({ columns: true }));
   const rows: any[] = [];
   // Se recorre cada fila del CSV.
   for await (const row of parser) {
@@ -76,14 +79,19 @@ async function loadRawOrderItems() {
     });
   }
   // Se insertan los ítems en la tabla raw_order_items.
-  await prisma.raw_order_items.createMany({ data: rows });
+  await prisma.raw_order_items.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
   console.log("RAW Order Items cargados:", rows.length);
 }
 
 // Order Payments
 // Función para cargar los pagos de las órdenes desde el CSV.
 async function loadRawOrderPayments() {
-  const parser = fs.createReadStream("data/olist_order_payments_dataset.csv").pipe(parse({ columns: true }));
+  const parser = fs
+    .createReadStream("data/olist_order_payments_dataset.csv")
+    .pipe(parse({ columns: true }));
   const rows: any[] = [];
   for await (const row of parser) {
     rows.push({
@@ -95,37 +103,61 @@ async function loadRawOrderPayments() {
     });
   }
   // Se insertan los pagos en la tabla raw_order_payments.
-  await prisma.raw_order_payments.createMany({ data: rows });
+  await prisma.raw_order_payments.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
   console.log("RAW Order Payments cargados:", rows.length);
 }
 
 // Products
 // Función para cargar los productos desde el CSV.
 async function loadRawProducts() {
-  const parser = fs.createReadStream("data/olist_products_dataset.csv").pipe(parse({ columns: true }));
+  const parser = fs
+    .createReadStream("data/olist_products_dataset.csv")
+    .pipe(parse({ columns: true }));
   const rows: any[] = [];
   for await (const row of parser) {
     rows.push({
       product_id: row.product_id,
       product_category_name: row.product_category_name || null,
-      product_name_lenght: row.product_name_lenght ? parseInt(row.product_name_lenght) : null,
-      product_description_lenght: row.product_description_lenght ? parseInt(row.product_description_lenght) : null,
-      product_photos_qty: row.product_photos_qty ? parseInt(row.product_photos_qty) : null,
-      product_weight_g: row.product_weight_g ? parseInt(row.product_weight_g) : null,
-      product_length_cm: row.product_length_cm ? parseInt(row.product_length_cm) : null,
-      product_height_cm: row.product_height_cm ? parseInt(row.product_height_cm) : null,
-      product_width_cm: row.product_width_cm ? parseInt(row.product_width_cm) : null,
+      product_name_lenght: row.product_name_lenght
+        ? parseInt(row.product_name_lenght)
+        : null,
+      product_description_lenght: row.product_description_lenght
+        ? parseInt(row.product_description_lenght)
+        : null,
+      product_photos_qty: row.product_photos_qty
+        ? parseInt(row.product_photos_qty)
+        : null,
+      product_weight_g: row.product_weight_g
+        ? parseInt(row.product_weight_g)
+        : null,
+      product_length_cm: row.product_length_cm
+        ? parseInt(row.product_length_cm)
+        : null,
+      product_height_cm: row.product_height_cm
+        ? parseInt(row.product_height_cm)
+        : null,
+      product_width_cm: row.product_width_cm
+        ? parseInt(row.product_width_cm)
+        : null,
     });
   }
   // Se insertan los productos en la tabla raw_products.
-  await prisma.raw_products.createMany({ data: rows });
+  await prisma.raw_products.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
   console.log("RAW Products cargados:", rows.length);
 }
 
 // Customers
 // Función para cargar los clientes desde el CSV.
 async function loadRawCustomers() {
-  const parser = fs.createReadStream("data/olist_customers_dataset.csv").pipe(parse({ columns: true }));
+  const parser = fs
+    .createReadStream("data/olist_customers_dataset.csv")
+    .pipe(parse({ columns: true }));
   const rows: any[] = [];
   for await (const row of parser) {
     rows.push({
@@ -137,31 +169,42 @@ async function loadRawCustomers() {
     });
   }
   // Se insertan los clientes en la tabla raw_customers.
-  await prisma.raw_customers.createMany({ data: rows });
+  await prisma.raw_customers.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
   console.log("RAW Customers cargados:", rows.length);
 }
 
 // Product Category Translation
 // Función para cargar la traducción de categorías de producto desde el CSV.
 async function loadRawCategoryTranslation() {
-  const parser = fs.createReadStream("data/product_category_name_translation.csv").pipe(parse({ columns: true }));
+  const parser = fs
+    .createReadStream("data/product_category_name_translation.csv")
+    .pipe(parse({ columns: true, skip_empty_lines: true }));
+
   const rows: any[] = [];
   for await (const row of parser) {
-    rows.push({
-      product_category_name: row.product_category_name,
-      product_category_name_english: row.product_category_name_english,
-    });
+    const keys = Object.keys(row);
+    // Verificamos que tengamos al menos dos claves (deberían existir siempre)
+    if (keys.length >= 2 && keys[0] !== undefined && keys[1] !== undefined) {
+      rows.push({
+        product_category_name: row[keys[0]], // clave con posible BOM
+        product_category_name_english: row[keys[1]], // segunda clave
+      });
+    }
   }
-  // Se insertan las traducciones en la tabla raw_product_category_name_translation.
-  await prisma.raw_product_category_name_translation.createMany({ data: rows });
+  await prisma.raw_product_category_name_translation.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
   console.log("RAW Category Translation cargados:", rows.length);
 }
-
 
 // ==================== TRANSFORMACIÓN RAW → CLEAN ====================
 
 async function transformRawToClean() {
-  // Inserta los datos de órdenes desde RAW a CLEAN, convirtiendo las fechas a tipo TIMESTAMP.
+  // Órdenes
   await prisma.$executeRawUnsafe(`
     INSERT INTO clean.orders
     SELECT order_id, customer_id, order_status,
@@ -170,63 +213,69 @@ async function transformRawToClean() {
            CAST(order_delivered_carrier_date AS TIMESTAMP),
            CAST(order_delivered_customer_date AS TIMESTAMP),
            CAST(order_estimated_delivery_date AS TIMESTAMP)
-    FROM raw.orders;
+    FROM raw.orders
+    ON CONFLICT (order_id) DO NOTHING;
   `);
 
-  // Inserta los ítems de órdenes desde RAW a CLEAN, convirtiendo fechas y valores a tipos correctos.
+  // Ítems
   await prisma.$executeRawUnsafe(`
     INSERT INTO clean.order_items
     SELECT order_id, order_item_id, product_id, seller_id,
            CAST(shipping_limit_date AS TIMESTAMP),
            CAST(price AS DECIMAL),
            CAST(freight_value AS DECIMAL)
-    FROM raw.order_items;
+    FROM raw.order_items
+    ON CONFLICT (order_id, order_item_id) DO NOTHING;
   `);
 
-  // Inserta los pagos desde RAW a CLEAN, convirtiendo el valor del pago a DECIMAL.
+  // Pagos
   await prisma.$executeRawUnsafe(`
     INSERT INTO clean.order_payments
     SELECT order_id, payment_sequential, payment_type, payment_installments,
            CAST(payment_value AS DECIMAL)
-    FROM raw.order_payments;
+    FROM raw.order_payments
+    ON CONFLICT (order_id, payment_sequential) DO NOTHING;
   `);
 
-  // Inserta los productos desde RAW a CLEAN, manteniendo los atributos tal cual.
+  // Productos
   await prisma.$executeRawUnsafe(`
     INSERT INTO clean.products
     SELECT product_id, product_category_name, product_name_lenght,
            product_description_lenght, product_photos_qty,
            product_weight_g, product_length_cm, product_height_cm, product_width_cm
-    FROM raw.products;
+    FROM raw.products
+    ON CONFLICT (product_id) DO NOTHING;
   `);
 
-  // Inserta los clientes desde RAW a CLEAN, manteniendo los atributos tal cual.
+  // Clientes
   await prisma.$executeRawUnsafe(`
     INSERT INTO clean.customers
     SELECT customer_id, customer_unique_id, customer_zip_code_prefix,
            customer_city, customer_state
-    FROM raw.customers;
+    FROM raw.customers
+    ON CONFLICT (customer_id) DO NOTHING;
   `);
 
-  // Inserta las traducciones de categorías desde RAW a CLEAN.
+  // Traducción de categorías
   await prisma.$executeRawUnsafe(`
     INSERT INTO clean.product_category_name_translation
     SELECT product_category_name, product_category_name_english
-    FROM raw.product_category_name_translation;
+    FROM raw.product_category_name_translation
+    ON CONFLICT (product_category_name) DO NOTHING;
   `);
 
-  // Mensaje en consola confirmando que la transformación se completó.
   console.log("Transformación RAW → CLEAN completada");
 }
 
-// ==================== 3. POBLAR DWH ====================
+// ==================== POBLAR DWH ====================
 
 // Pobla la dimensión de clientes con datos únicos desde CLEAN.
 async function populateDimCustomer() {
   await prisma.$executeRawUnsafe(`
     INSERT INTO dwh.dim_customer (customer_id, customer_city, customer_state)
     SELECT DISTINCT customer_id, customer_city, customer_state
-    FROM clean.customers;
+    FROM clean.customers
+    ON CONFLICT (customer_id) DO NOTHING;
   `);
 }
 
@@ -239,7 +288,8 @@ async function populateDimProduct() {
     SELECT DISTINCT product_id, product_category_name, product_name_lenght,
            product_description_lenght, product_photos_qty,
            product_weight_g, product_length_cm, product_height_cm, product_width_cm
-    FROM clean.products;
+    FROM clean.products
+    ON CONFLICT (product_id) DO NOTHING;
   `);
 }
 
@@ -252,7 +302,8 @@ async function populateDimDate() {
            EXTRACT(MONTH FROM order_purchase_timestamp),
            EXTRACT(DAY FROM order_purchase_timestamp),
            EXTRACT(DOW FROM order_purchase_timestamp)
-    FROM clean.orders;
+    FROM clean.orders
+    ON CONFLICT (full_date) DO NOTHING;
   `);
 }
 
@@ -263,43 +314,61 @@ async function populateDimOrder() {
                                order_delivered_customer_date, order_estimated_delivery_date)
     SELECT DISTINCT order_id, order_status, order_purchase_timestamp,
            order_delivered_customer_date, order_estimated_delivery_date
-    FROM clean.orders;
+    FROM clean.orders
+    ON CONFLICT (order_id) DO NOTHING;
   `);
 }
 
 // Pobla la tabla de hechos fact_sales aplicando prorrateo de pagos y generando flags.
 async function populateFactSales() {
   await prisma.$executeRawUnsafe(`
-    WITH order_totals AS (
-      SELECT order_id, SUM(price) AS order_total_price
-      FROM clean.order_items
-      GROUP BY order_id
-    ),
-    payments_summed AS (
-      SELECT order_id, SUM(payment_value) AS total_payment
-      FROM clean.order_payments
-      GROUP BY order_id
-    )
-    INSERT INTO dwh.fact_sales (
-      order_id, order_item_id, item_price, freight_value, payment_value_allocated,
-      is_delivered, is_canceled, is_on_time
-    )
-    SELECT 
-      oi.order_id,
-      oi.order_item_id,
-      oi.price,
-      oi.freight_value,
-      (oi.price / ot.order_total_price) * ps.total_payment AS payment_value_allocated,
+     WITH order_totals AS (
+       SELECT order_id, SUM(price) AS order_total_price
+       FROM clean.order_items
+       GROUP BY order_id
+     ),
+     payments_summed AS (
+       SELECT order_id, SUM(payment_value) AS total_payment
+       FROM clean.order_payments
+       GROUP BY order_id
+     )
+     INSERT INTO dwh.fact_sales (
+       order_id,
+       order_item_id,
+       date_key,
+       product_key,
+       customer_key,
+       order_key,
+       item_price,
+       freight_value,
+       payment_value_allocated,
+       is_delivered,
+       is_canceled,
+       is_on_time
+     )
+     SELECT 
+       oi.order_id,
+       oi.order_item_id,
+       dd.date_key,
+       dp.product_key,
+       dc.customer_key,
+       ord.order_key,
+       oi.price,
+       oi.freight_value,
+       COALESCE((oi.price / ot.order_total_price) * ps.total_payment, 0) AS payment_value_allocated,
       CASE WHEN o.order_status = 'delivered' THEN TRUE ELSE FALSE END AS is_delivered,
       CASE WHEN o.order_status = 'canceled' THEN TRUE ELSE FALSE END AS is_canceled,
       CASE WHEN o.order_delivered_customer_date <= o.order_estimated_delivery_date THEN TRUE ELSE FALSE END AS is_on_time
     FROM clean.order_items oi
     JOIN order_totals ot ON oi.order_id = ot.order_id
     LEFT JOIN payments_summed ps ON oi.order_id = ps.order_id
-    JOIN clean.orders o ON oi.order_id = o.order_id;
-  `);
+    JOIN clean.orders o ON oi.order_id = o.order_id
+    JOIN dwh.dim_customer dc ON dc.customer_id = o.customer_id
+    JOIN dwh.dim_product dp ON dp.product_id = oi.product_id
+    JOIN dwh.dim_order ord ON ord.order_id = o.order_id
+    JOIN dwh.dim_date dd ON dd.full_date::date = o.order_purchase_timestamp::date;
+   `);
 
-  // Mensaje en consola confirmando que fact_sales fue poblada correctamente.
   console.log("Fact Sales poblada con prorrateo de pagos");
 }
 
@@ -328,7 +397,7 @@ async function main() {
 }
 
 // Ejecución del script ETL con manejo de errores.
-main().catch(e => {
+main().catch((e) => {
   console.error(e);
   prisma.$disconnect();
 });

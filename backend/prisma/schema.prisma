@@ -2,18 +2,16 @@
 // Define qué proveedor se usará para generar el cliente de base de datos.
 generator client {
   provider = "prisma-client"
-  // Ruta de salida opcional para el cliente generado.
+  // Ruta de salida para el cliente generado.
   output   = "../generated/prisma" 
 }
 
-// Configuración del datasource.
 // Se especifica que se usará PostgreSQL como motor de base de datos.
 datasource db {
   provider = "postgresql"
 
   // Se definen los esquemas que se utilizarán en la base de datos.
   schemas = ["public", "raw", "clean", "dwh"]
-  // url      = env("DATABASE_URL") // La cadena de conexión se obtiene de una variable de entorno.
 }
 
 // ==================== ESQUEMA RAW ====================

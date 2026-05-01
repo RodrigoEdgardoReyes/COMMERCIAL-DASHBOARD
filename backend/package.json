@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "etl": "ts-node-dev scripts/etl.ts",
+    "dev": "tsx watch src/index.ts",
+    "etl": "node dist/scripts/etl.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:deploy": "prisma migrate deploy"
@@ -34,6 +34,7 @@
     "eslint": "^10.2.0",
     "prisma": "^7.7.0",
     "ts-node-dev": "^2.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
 }
