@@ -1,5 +1,6 @@
-// components/FilterBar.tsx
 'use client';
+
+import CategorySelect from './CategorySelect';
 
 interface FilterBarProps {
   from: string;
@@ -12,55 +13,55 @@ interface FilterBarProps {
   onProductCategoryChange: (value: string) => void;
 }
 
+const ORDER_STATUS_OPTIONS = [
+  { value: '', label: 'Todos los estados' },
+  { value: 'delivered', label: 'Entregado' },
+  { value: 'canceled', label: 'Cancelado' },
+  { value: 'shipped', label: 'Enviado' },
+  { value: 'processing', label: 'Procesando' },
+  // Añade otros si existen en tu dataset
+];
+
 export default function FilterBar({
   from, to, onFromChange, onToChange,
   orderStatus, onOrderStatusChange,
   productCategory, onProductCategoryChange
 }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-lg shadow">
-      <div className="flex flex-col">
-        <label className="text-sm text-gray-600 mb-1">Desde</label>
+    <div className="flex flex-wrap gap-4 mb-6 bg-white p-4 text-black rounded shadow">
+      <div>
+        <label className="block text-sm font-medium">Desde</label>
         <input
           type="date"
-          className="border border-gray-300 rounded px-3 py-2 text-black text-sm"
           value={from}
           onChange={(e) => onFromChange(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2"
         />
       </div>
-      <div className="flex flex-col">
-        <label className="text-sm text-gray-600 mb-1">Hasta</label>
+      <div>
+        <label className="block text-sm font-medium">Hasta</label>
         <input
           type="date"
-          className="border border-gray-300 rounded px-3 py-2 text-black text-sm"
           value={to}
           onChange={(e) => onToChange(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2"
         />
       </div>
-      <div className="flex flex-col">
-        <label className="text-sm text-gray-600 mb-1">Estado de la orden</label>
+      <div>
+        <label className="block text-sm font-medium">Estado de la orden</label>
         <select
-          className="border border-gray-300 rounded px-3 py-2 text-black text-sm"
           value={orderStatus}
           onChange={(e) => onOrderStatusChange(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2"
         >
-          <option value="">Todos</option>
-          <option value="delivered">Entregado</option>
-          <option value="canceled">Cancelado</option>
-          <option value="shipped">Enviado</option>
-          {/* Agrega más según el dataset */}
+          {ORDER_STATUS_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </div>
-      <div className="flex flex-col">
-        <label className="text-sm text-gray-600 mb-1">Categoría del producto</label>
-        <input
-          type="text"
-          placeholder="ej. informatica_acessorios"
-          className="border border-gray-300 rounded px-3 py-2 text-black text-sm"
-          value={productCategory}
-          onChange={(e) => onProductCategoryChange(e.target.value)}
-        />
-        {/* Podría ser un select, pero requeriría cargar las categorías disponibles */}
+      <div>
+        <label className="block text-sm font-medium">Categoría del producto</label>
+        <CategorySelect value={productCategory} onChange={onProductCategoryChange} />
       </div>
     </div>
   );
