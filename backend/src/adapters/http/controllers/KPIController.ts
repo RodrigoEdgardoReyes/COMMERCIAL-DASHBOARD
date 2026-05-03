@@ -7,28 +7,17 @@ export class KPIController {
 
   async getKPIs(req: Request, res: Response) {
     try {
-      const { from, to } = req.query;
-
-      //Se validan que las fechas estén presentes.
-      if (!from || !to) {
-        return res.status(400).json({ error: "Missing date range" });
-      }
-
-      //Ejecutamos el caso de uso con las fechas.
+      const { from, to, order_status, product_category } = req.query;
+      if (!from || !to) res.status(400).json({ error: 'Missing date range' });
       const kpis = await this.getKPIsUseCase.execute(
         new Date(from as string),
         new Date(to as string),
+        order_status as string | undefined,
+        product_category as string | undefined
       );
-
-      //Respondemos con los KPIs en formato JSON.
       res.json(kpis);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      console.error("Error in getKPIs:", errorMessage);
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: errorMessage });
+      res.status(500).json({ error: 'Internal server error', details: (error as Error).message });
     }
   }
 }

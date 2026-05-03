@@ -6,7 +6,7 @@ export class ProductRankingsController {
 
   async getRankings(req: Request, res: Response) {
     try {
-      const { from, to, metric, limit } = req.query;
+      const { from, to, metric, limit, order_status, product_category } = req.query;
       if (!from || !to) {
         return res.status(400).json({ error: 'Missing date range (from, to)' });
       }
@@ -14,7 +14,9 @@ export class ProductRankingsController {
         new Date(from as string),
         new Date(to as string),
         metric as string,
-        limit ? parseInt(limit as string) : 10
+        limit ? parseInt(limit as string) : 10,
+        order_status as string | undefined,
+        product_category as string | undefined
       );
       res.json(data);
     } catch (error) {

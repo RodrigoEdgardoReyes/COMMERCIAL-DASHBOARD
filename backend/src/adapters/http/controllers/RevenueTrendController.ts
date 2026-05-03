@@ -6,14 +6,16 @@ export class RevenueTrendController {
 
   async getRevenueTrend(req: Request, res: Response) {
     try {
-      const { from, to, grain } = req.query;
+      const { from, to, grain, order_status, product_category } = req.query;
       if (!from || !to) {
         return res.status(400).json({ error: 'Missing date range (from, to)' });
       }
       const data = await this.getRevenueTrendUseCase.execute(
         new Date(from as string),
         new Date(to as string),
-        grain as string
+        grain as string,
+        order_status as string | undefined,
+        product_category as string | undefined
       );
       res.json(data);
     } catch (error) {

@@ -12,6 +12,10 @@ import { trendRouter } from "./adapters/http/routes/trendRoutes.js";
 // Importa el router de rankings, que contiene las rutas relacionadas al ranking de productos.
 import { rankingRouter } from "./adapters/http/routes/rankingRoutes.js";
 
+import { categoryRouter } from "./adapters/http/routes/categoryRoutes.js";
+
+import { debugRouter } from "./adapters/http/routes/debugRouter.js";
+
 // Importa CORS, middleware que permite peticiones desde otros orígenes (ej. frontend).
 import cors from "cors";
 
@@ -43,6 +47,12 @@ app.use("/api/trend", trendRouter);
 
 // Montar el router de rankings para manejar las rutas relacionadas al ranking de productos. : GET /api/rankings/products
 app.use("/api/rankings", rankingRouter);
+
+// Monta el router de categorías para manejar las rutas relacionadas a las categorías de productos. : GET /api/categories
+app.use("/api/categories", categoryRouter);
+
+// Montar el router de debug para manejar las rutas relacionadas a la obtención del plan de consulta. : POST /api/debug/plan
+app.use('/api/debug', debugRouter);
 
 // Define una ruta de prueba /health para verificar que el servidor está activo.
 // Devuelve un objeto con estado OK y un timestamp.
