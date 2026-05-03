@@ -198,19 +198,19 @@ erDiagram
         int order_key FK
     }
 
-    dim_date ||--o{ fact_sales : "date_key"
-    dim_customer ||--o{ fact_sales : "customer_key"
-    dim_product ||--o{ fact_sales : "product_key"
-    dim_order ||--o{ fact_sales : "order_key"
+    dim_date ||--o{ fact_sales : "date_key"}
+    dim_customer ||--o{ fact_sales : "customer_key"}
+    dim_product ||--o{ fact_sales : "product_key"}
+    dim_order ||--o{ fact_sales : "order_key"}
 ```
 
 ## 🔄 Diagrama de Flujo ETL
 
 ```mermaid
 flowchart TD
-    A[CSV Dataset Olist] --> B[Esquema RAW]
-    B -->|Conversión de tipos, manejo de nulos| C[Esquema CLEAN]
-    C -->|Transformación analítica, joins, prorrateo de pagos| D[Esquema DWH (Star Schema)]
+    A["CSV Dataset Olist"] --> B["Esquema RAW"]
+    B -->|"Conversion de tipos, manejo de nulos"| C["Esquema CLEAN"]
+    C -->|"Transformacion analitica, joins, prorrateo de pagos"| D["Esquema DWH Star Schema"]
 
     B:::raw
     C:::clean
@@ -219,6 +219,7 @@ flowchart TD
     classDef raw fill:#f9f,stroke:#333,stroke-width:2px;
     classDef clean fill:#bbf,stroke:#333,stroke-width:2px;
     classDef dwh fill:#bfb,stroke:#333,stroke-width:2px;
+
 ```
 
 ## Arquitectura Backend(Hexagonal)
@@ -249,4 +250,3 @@ end
     I1 --> D2
     H1 --> A1
     H2 --> H1
-```
