@@ -198,10 +198,10 @@ erDiagram
         int order_key FK
     }
 
-    dim_date ||--o{ fact_sales : "date_key"}
-    dim_customer ||--o{ fact_sales : "customer_key"}
-    dim_product ||--o{ fact_sales : "product_key"}
-    dim_order ||--o{ fact_sales : "order_key"}
+    dim_date ||--o{ fact_sales : "date_key"
+    dim_customer ||--o{ fact_sales : "customer_key"
+    dim_product ||--o{ fact_sales : "product_key"
+    dim_order ||--o{ fact_sales : "order_key"
 ```
 
 ## 🔄 Diagrama de Flujo ETL
