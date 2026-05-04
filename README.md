@@ -28,7 +28,7 @@ El comando `up` se encargará de:
 
 ### Backend (Node.js + Express + TypeScript)
 
-Arquitectura Hexagonal (Puertos y Adaptadores):
+El backend sigue una **Arquitectura Hexagonal (Puertos y Adaptadores)** que separa claramente la lógica de negocio de los detalles de infraestructura:
 
 - **`src/domain`**: Entidades de negocio y contratos de repositorios.
 - **`src/application`**: Casos de uso que orquestan el flujo de datos.
@@ -37,16 +37,28 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 
 **Regla crítica cumplida:** El backend consulta únicamente el esquema `dwh`.
 
-### Frontend (Next.js 14 + TypeScript + TailwindCSS)
+### Frontend (Next.js 16 + TypeScript + TailwindCSS)
 
 - App Router de Next.js.
 - Componentes de servidor y cliente.
 - Consumo de API vía `fetch`.
 - Librerías: Recharts, date-fns, Zod.
+- **Recharts**: Librería de gráficos utilizada para la visualización de KPIs y tendencias.
+- **date-fns**: Manejo de fechas (parseo, formateo, intervalos).
+- **zod**: Validación de esquemas de datos, especialmente en los parámetros de los endpoints.
 
 ---
 
 ## 📂 Modelo de Datos y ETL
+
+El flujo de datos se divide en tres capas dentro de PostgreSQL: **raw**, **clean** y **dwh** (modelo estrella).
+
+**Script ETL**: `backend/scripts/etl.ts`
+
+1. Lee archivos CSV públicos de Olist (datasets de pedidos).
+2. Carga los datos en crudo en el esquema `raw`.
+3. Transforma y limpia los datos al esquema `clean` (conversión de tipos, manejo de nulos).
+4. Construye el esquema estrella en `dwh` con dimensiones y la tabla de hechos `fact_sales`.
 
 ### Tablas cargadas en `raw`
 
@@ -79,11 +91,28 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 
 ## 📊 KPIs Implementados
 
-- **GMV**: `SUM(fact_sales.item_price)`
-- **Revenue**: `SUM(fact_sales.payment_value_allocated)`
-- **On-Time Delivery Rate**: proporción de órdenes con `delivered_date <= estimated_date`.
-- **Cancel Rate**: proporción de órdenes con `order_status = 'canceled'`.
-- **Orders Count**: `COUNT(DISTINCT order_id)`
+- **GMV** (Gross Merchandise Value): `SUM(fact_sales.item_price)`  
+  Valor total de los productos vendidos (precio de ítems).
+- **Revenue** (Ingreso real): `SUM(fact_sales.payment_value_allocated)`  
+  Ingreso considerando el pago prorrateado.
+- **On-Time Delivery Rate**: `entregas_a_tiempo / total_entregas`  
+  Proporción de órdenes entregadas antes o en la fecha estimada.
+- **Cancel Rate**: `canceladas / total_órdenes`  
+  Porcentaje de órdenes canceladas.
+- **Orders Count**: `COUNT(DISTINCT order_id)`  
+  Número de órdenes únicas en el período.
+
+---
+
+## 📡 Endpoints del API
+
+| Método | Ruta | Descripción | Parámetros |
+|--------|------|-------------|------------|
+| `GET` | `/api/kpis` | KPIs generales | `from`, `to`, `order_status?`, `product_category?` |
+| `GET` | `/api/trend/revenue` | Tendencia de ingresos | `from`, `to`, `grain`, `order_status?`, `product_category?` |
+| `GET` | `/api/rankings/products` | Ranking de productos | `from`, `to`, `metric` (`gmv`|`revenue`), `limit`, `order_status?`, `product_category?` |
+| `GET` | `/api/categories` | Lista de categorías | — |
+| `GET` | `/api/debug/query-plan` | Plan de consulta (EXPLAIN ANALYZE) | `query` (opcional: `kpis`, `trend`, `rankings`) |
 
 ---
 
@@ -105,7 +134,7 @@ Arquitectura Hexagonal (Puertos y Adaptadores):
 
 ## ⚖️ Decisiones Técnicas y Tradeoffs
 
-- **Prisma vs TypeORM**: Se eligió Prisma por su tipado fuerte y soporte de múltiples esquemas.
+- **Prisma vs TypeORM**: Se eligió Prisma porque ofrece tipado fuerte generado automáticamente y mejor soporte para múltiples esquemas PostgreSQL.
 - **Prorrateo de pagos**: Se prefirió proporcional al precio de ítem para evitar sesgos en órdenes con múltiples productos.
 - **Hexagonal Architecture**: Aísla lógica de negocio de infraestructura, facilitando testeo y mantenibilidad.
 - **Docker Compose**: Simplifica la ejecución con servicios aislados (frontend, backend, base de datos).
