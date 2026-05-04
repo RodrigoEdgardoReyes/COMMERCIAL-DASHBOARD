@@ -21,7 +21,7 @@
     // See also https://aka.ms/tsconfig/module
     // "module": "nodenext",
     // "target": "esnext",
-    "types": ["node"],
+    "types": ["node", "jest"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -54,6 +54,6 @@
     "moduleDetection": "force",
     // "skipLibCheck": true,
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
