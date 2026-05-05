@@ -1,12 +1,19 @@
 # Etapa 1: Construcción
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Copia solo los archivos de dependencias para cachear la instalación
 COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm ci
-RUN npx prisma generate
+RUN npm install
+
+# Copia todo el código fuente (incluye prisma, tsconfig, etc.)
 COPY . .
-RUN npm run build
+
+# Genera el cliente de Prisma (necesario para compilar si usas tipos del cliente)
+RUN npx prisma generate
+
+# Compila TypeScript a JavaScript en ./dist
+RUN npm run build || (echo "BUILD FAILED" && exit 1) 
 
 # Etapa 2: Ejecución
 FROM node:20-alpine
@@ -15,6 +22,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/data ./data
+COPY --from=builder /app/generated ./generated
 
 EXPOSE 3001
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run etl && npm start"]
+CMD ["sh", "-c", "echo 'DATABASE_URL: '$DATABASE_URL && npx prisma migrate deploy && npm run etl && npm start"]

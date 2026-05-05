@@ -3,8 +3,13 @@ import type { GetKPIsUseCase } from "../../../application/use-cases/GetKPIsUseCa
 
 // Controlador HTTP que recibe las peticiones y llama al caso de uso.
 export class KPIController {
-  constructor(private getKPIsUseCase: GetKPIsUseCase) {}
+  constructor(private readonly getKPIsUseCase: GetKPIsUseCase) {}
 
+  /**
+   * GET /api/kpis?from=...&to=...&order_status=...&product_category=...
+   * Calcula y devuelve los KPIs en el rango de fechas indicado,
+   * aplicando los filtros opcionales si se reciben.
+   */
   async getKPIs(req: Request, res: Response) {
     try {
       const { from, to, order_status, product_category } = req.query;

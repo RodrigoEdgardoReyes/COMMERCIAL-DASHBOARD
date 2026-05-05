@@ -1,25 +1,24 @@
-// Generador del cliente Prisma.
-// Define qué proveedor se usará para generar el cliente de base de datos.
+// =============================================================================
+// Prisma Schema – Olist Commercial Dashboard
+// Capas: raw (datos crudos), clean (tipos corregidos), dwh (modelo estrella)
+// =============================================================================
+
 generator client {
   provider = "prisma-client"
-  // Ruta de salida para el cliente generado.
-  output   = "../generated/prisma" 
+  output   = "../generated/prisma"
 }
 
-// Se especifica que se usará PostgreSQL como motor de base de datos.
 datasource db {
   provider = "postgresql"
-
-  // Se definen los esquemas que se utilizarán en la base de datos.
-  schemas = ["public", "raw", "clean", "dwh"]
+  schemas  = ["public", "raw", "clean", "dwh"]
 }
 
-// ==================== ESQUEMA RAW ====================
-
-// Modelo para órdenes en esquema RAW.
+// =============================================================================
+// ESQUEMA RAW – Copia de los archivos CSV
+// =============================================================================
 // Representa los datos tal cual vienen del CSV original.
 model raw_orders {
-  order_id                      String  @id @map("order_id") // Clave primaria mapeada desde CSV.
+  order_id                      String  @id @map("order_id") 
   customer_id                   String  @map("customer_id")
   order_status                  String  @map("order_status")
   order_purchase_timestamp      String  @map("order_purchase_timestamp")
@@ -32,7 +31,6 @@ model raw_orders {
   @@schema("raw") // Indica que pertenece al esquema raw.
 }
 
-// Modelo para ítems de órdenes en esquema RAW.
 model raw_order_items {
   order_id            String @map("order_id")
   order_item_id       Int    @map("order_item_id")
@@ -47,7 +45,6 @@ model raw_order_items {
   @@schema("raw")
 }
 
-// Modelo para pagos en esquema RAW.
 model raw_order_payments {
   order_id             String @map("order_id")
   payment_sequential   Int    @map("payment_sequential")
@@ -60,7 +57,6 @@ model raw_order_payments {
   @@schema("raw")
 }
 
-// Modelo para productos en esquema RAW.
 model raw_products {
   product_id                 String  @id @map("product_id")
   product_category_name      String? @map("product_category_name")
@@ -76,7 +72,6 @@ model raw_products {
   @@schema("raw")
 }
 
-// Modelo para clientes en esquema RAW.
 model raw_customers {
   customer_id              String @id @map("customer_id")
   customer_unique_id       String @map("customer_unique_id")
@@ -88,7 +83,6 @@ model raw_customers {
   @@schema("raw")
 }
 
-// Modelo para traducción de categorías en esquema RAW.
 model raw_product_category_name_translation {
   product_category_name         String @id @map("product_category_name")
   product_category_name_english String @map("product_category_name_english")
@@ -97,9 +91,10 @@ model raw_product_category_name_translation {
   @@schema("raw")
 }
 
-// ==================== ESQUEMA CLEAN ====================
+// =============================================================================
+// ESQUEMA CLEAN – Datos con tipos de negocio correctos
+// =============================================================================
 
-// Modelo para órdenes en esquema CLEAN.
 // Convierte los campos de fecha a tipo DateTime.
 model clean_orders {
   order_id                      String    @id
@@ -115,7 +110,6 @@ model clean_orders {
   @@schema("clean")
 }
 
-// Modelo para ítems de órdenes en esquema CLEAN.
 // Convierte fechas y valores a tipos correctos.
 model clean_order_items {
   order_id            String
@@ -131,7 +125,6 @@ model clean_order_items {
   @@schema("clean")
 }
 
-// Modelo para pagos en esquema CLEAN.
 // Convierte el valor del pago a Decimal.
 model clean_order_payments {
   order_id             String
@@ -145,7 +138,7 @@ model clean_order_payments {
   @@schema("clean")
 }
 
-// Modelo para productos en esquema CLEAN.
+// Convierte los campos de producto a tipos correctos.
 model clean_products {
   product_id                 String  @id
   product_category_name      String?
@@ -161,7 +154,6 @@ model clean_products {
   @@schema("clean")
 }
 
-// Modelo para clientes en esquema CLEAN.
 model clean_customers {
   customer_id              String @id
   customer_unique_id       String
@@ -173,7 +165,6 @@ model clean_customers {
   @@schema("clean")
 }
 
-// Modelo para traducción de categorías en esquema CLEAN.
 model clean_product_category_name_translation {
   product_category_name         String @id
   product_category_name_english String
@@ -182,7 +173,11 @@ model clean_product_category_name_translation {
   @@schema("clean")
 }
 
-// ==================== ESQUEMA DWH / GOLD ====================
+// =============================================================================
+// ESQUEMA DWH / GOLD – Modelo estrella para analytics
+// =============================================================================
+
+// ---------------------------Dimensiones ---------------------------------------
 
 // Dimensión de fechas para análisis temporal.
 model dim_date {
@@ -242,7 +237,7 @@ model dim_order {
   @@schema("dwh")
 }
 
-// Tabla de hechos (ventas).
+// ----------------------Tabla de hechos (ventas).---------------------------
 // Contiene métricas y flags, con relaciones a las dimensiones.
 model fact_sales {
   sales_key     Int    @id @default(autoincrement())

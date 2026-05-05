@@ -3,12 +3,10 @@ import type { KPIs } from '../entities/KPIs.ts';
 import type { ProductRanking } from '../entities/ProductRanking.js';
 import type { TrendPoint } from '../entities/TrendPoint.js';
 
-// Definición de la interfaz SaleRepository.
 // Cualquier implementación (ej. PrismaSaleRepository) debe cumplir este contrato.
 export interface SaleRepository {
   // Método para obtener KPIs en un rango de fechas con filtros opcionales.
   getKPIs(startDate: Date, endDate: Date, orderStatus?: string, productCategory?: string): Promise<KPIs>;
-  // getKPIs(startDate: Date, endDate: Date, filters?: any): Promise<KPIs>;
 
   // Método para obtener la tendencia de ingresos en un rango de fechas, con una granularidad y filtros opcionales. 
   getRevenueTrend(startDate: Date, endDate: Date, grain: string, orderStatus?: string, productCategory?: string): Promise<TrendPoint[]>;

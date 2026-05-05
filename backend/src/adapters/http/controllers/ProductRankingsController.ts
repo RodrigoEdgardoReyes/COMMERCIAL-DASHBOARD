@@ -2,8 +2,13 @@ import type { Request, Response } from 'express';
 import type { GetTopProductsUseCase } from '../../../application/use-cases/GetTopProductsUseCase.js';
 
 export class ProductRankingsController {
-  constructor(private getTopProductsUseCase: GetTopProductsUseCase) {}
+  constructor(private readonly getTopProductsUseCase: GetTopProductsUseCase) {}
 
+  /**
+   * GET /api/rankings/products?from=...&to=...&metric=gmv|revenue&limit=...&order_status=...&product_category=...
+   * Devuelve el ranking de productos según la métrica solicitada,
+   * aplicando los filtros opcionales de estado y categoría.
+   */
   async getRankings(req: Request, res: Response) {
     try {
       const { from, to, metric, limit, order_status, product_category } = req.query;

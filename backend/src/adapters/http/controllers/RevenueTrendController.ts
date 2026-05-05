@@ -2,8 +2,13 @@ import type { Request, Response } from 'express';
 import type { GetRevenueTrendUseCase } from '../../../application/use-cases/GetRevenueTrendUseCase.js';
 
 export class RevenueTrendController {
-  constructor(private getRevenueTrendUseCase: GetRevenueTrendUseCase) {}
+  constructor(private readonly getRevenueTrendUseCase: GetRevenueTrendUseCase) {}
 
+  /**
+   * GET /api/revenue-trend?from=...&to=...&grain=...&order_status=...&product_category=...
+   * Devuelve la tendencia de ingresos en el rango de fechas indicado,
+   * aplicando los filtros opcionales si se reciben.
+   */
   async getRevenueTrend(req: Request, res: Response) {
     try {
       const { from, to, grain, order_status, product_category } = req.query;

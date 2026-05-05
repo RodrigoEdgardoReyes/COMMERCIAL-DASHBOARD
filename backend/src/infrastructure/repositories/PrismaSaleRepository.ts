@@ -5,13 +5,14 @@ import type { KPIs } from "../../domain/entities/KPIs.ts";
 import type { TrendPoint } from "../../domain/entities/TrendPoint.js";
 import type { ProductRanking } from "../../domain/entities/ProductRanking.js";
 
-// Interfaz para la fila cruda devuelta por la consulta
+// Interfaz para la fila cruda devuelta por la consulta 
 interface RawTrendRow {
 date: string;
 revenue: string;   
 orders: string;    
 }
 
+// Interfaz para la fila cruda devuelta por la consulta de productos
 interface RawProductRow {
   product_id: string;
   product_category: string;
@@ -21,89 +22,7 @@ interface RawProductRow {
 export class PrismaSaleRepository implements SaleRepository {
   constructor(private prisma: PrismaClient) {}
 
-  // async getKPIs(startDate: Date, endDate: Date, orderStatus?: string, productCategory?: string): Promise<KPIs> {
-  //   // GMV: suma de item_price en fact_sales
-  //   const gmvResult = await this.prisma.fact_sales.aggregate({
-  //     _sum: { item_price: true },
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //         order_status: orderStatus,
-  //       },
-  //     },
-  //   });
-  //   const gmv = gmvResult._sum.item_price || 0;
-
-  //   // Revenue: suma del pago prorrateado
-  //   const revenueResult = await this.prisma.fact_sales.aggregate({
-  //     _sum: { payment_value_allocated: true },
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //       },
-  //     },
-  //   });
-  //   const revenue = revenueResult._sum.payment_value_allocated || 0;
-
-  //   // Número de órdenes distintas
-  //   const ordersCount = await this.prisma.fact_sales.findMany({
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //       },
-  //     },
-  //     distinct: ["order_id"],
-  //     select: { order_id: true },
-  //   });
-  //   const orders = ordersCount.length;
-
-  //   // AOV
-  //   const aov = orders > 0 ? gmv / orders : 0;
-
-  //   // IPO (ítems por orden)
-  //   const totalItems = await this.prisma.fact_sales.count({
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //       },
-  //     },
-  //   });
-  //   const ipo = orders > 0 ? totalItems / orders : 0;
-
-  //   // Tasa de cancelación
-  //   const canceledCount = await this.prisma.fact_sales.count({
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //       },
-  //       is_canceled: true,
-  //     },
-  //   });
-  //   const cancelRate = orders > 0 ? canceledCount / orders : 0;
-
-  //   // Entregas a tiempo
-  //   const onTimeCount = await this.prisma.fact_sales.count({
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //       },
-  //       is_on_time: true,
-  //       is_delivered: true,
-  //     },
-  //   });
-  //   const deliveredCount = await this.prisma.fact_sales.count({
-  //     where: {
-  //       dim_order: {
-  //         order_purchase_timestamp: { gte: startDate, lte: endDate },
-  //       },
-  //       is_delivered: true,
-  //     },
-  //   });
-  //   const onTimeRate = deliveredCount > 0 ? onTimeCount / deliveredCount : 0;
-
-  //   return { gmv, revenue, orders, aov, ipo, cancelRate, onTimeRate };
-  // }
-
+  // Implementación del método para obtener KPIs, con construcción dinámica de la consulta SQL según los filtros recibidos.
   async getKPIs(startDate: Date, endDate: Date, orderStatus?: string, productCategory?: string): Promise<KPIs> {
   // Construimos condiciones dinámicas
   const whereClauses: string[] = [];
@@ -150,8 +69,11 @@ export class PrismaSaleRepository implements SaleRepository {
     JOIN dwh.dim_date dd ON fs.date_key = dd.date_key
     ${filter}
   `;
+
+  // Ejecutamos la consulta y parseamos el resultado a número, manejando posibles nulls o strings vacíos.
   const revenueResult = await this.prisma.$queryRawUnsafe(revenueQuery, ...params) as Array<{ revenue: number }>;
-  // const revenueResult = await this.prisma.$queryRawUnsafe<Array<{ revenue: number }>>(revenueQuery, ...params);
+  
+  // Si el resultado es null o no tiene la propiedad revenue, se asigna 0 por defecto.
   const revenue = Number(revenueResult[0]?.revenue) || 0;
 
   // Cantidad de órdenes distintas
@@ -222,29 +144,7 @@ export class PrismaSaleRepository implements SaleRepository {
   return { gmv, revenue, orders, aov, ipo, cancelRate, onTimeRate };
 }
 
-// async getRevenueTrend(startDate: Date, endDate: Date, grain: string): Promise<TrendPoint[]> {
-//   // Consulta SQL cruda para obtener la tendencia de ingresos por día, semana o mes.
-//   const result = await this.prisma.$queryRaw<RawTrendRow[]>`
-//     SELECT 
-//       TO_CHAR(dd.full_date, 'YYYY-MM-DD') AS date,
-//       SUM(fs.payment_value_allocated) AS revenue,
-//       COUNT(DISTINCT fs.order_id) AS orders
-//     FROM dwh.fact_sales fs
-//     JOIN dwh.dim_date dd ON fs.date_key = dd.date_key
-//     WHERE dd.full_date >= ${startDate}::timestamp
-//       AND dd.full_date <= ${endDate}::timestamp
-//     GROUP BY date
-//     ORDER BY date;
-//   `;
-
-//   // Convertir los resultados crudos a TrendPoint, parseando los números.
-//   return result.map((row: RawTrendRow) => ({
-//     date: row.date,
-//     revenue: Number(row.revenue),
-//     orders: Number(row.orders),
-//   }));
-// }
-
+// Implementación del método para obtener la tendencia de ingresos, con construcción dinámica de la consulta SQL según los filtros recibidos.
 async getRevenueTrend(startDate: Date, endDate: Date, grain: string, orderStatus?: string, productCategory?: string): Promise<TrendPoint[]> {
   const whereClauses: string[] = [];
   const params: any[] = [];
@@ -279,7 +179,9 @@ async getRevenueTrend(startDate: Date, endDate: Date, grain: string, orderStatus
     ORDER BY date;
   `;
 
+  // Ejecutamos la consulta y mapeamos el resultado a la estructura TrendPoint, asegurando convertir los valores a número.
   const result = await this.prisma.$queryRawUnsafe(query, ...params) as any[];
+
 // Luego el mapeo
 return result.map((row: any) => ({
   date: row.date,
@@ -288,39 +190,7 @@ return result.map((row: any) => ({
 }));
 }
 
-// async getTopProducts(startDate: Date, endDate: Date, metric: string, limit: number): Promise<ProductRanking[]> {
-//   const metricColumn = metric === 'revenue' ? 'fs.payment_value_allocated' : 'fs.item_price';
-
-//   const query = `
-//     SELECT
-//       dp.product_id,
-//       dp.product_category AS product_category,
-//       SUM(${metricColumn})::float AS metric
-//     FROM dwh.fact_sales fs
-//     JOIN dwh.dim_product dp ON fs.product_key = dp.product_key
-//     JOIN dwh.dim_date dd ON fs.date_key = dd.date_key
-//     WHERE dd.full_date >= $1::timestamp
-//       AND dd.full_date <= $2::timestamp
-//     GROUP BY dp.product_id, dp.product_category
-//     ORDER BY metric DESC
-//     LIMIT $3;
-//   `;
-
-//   // Sin parámetro de tipo; resultado es any[]
-//   const result = await this.prisma.$queryRawUnsafe(
-//     query,
-//     startDate,
-//     endDate,
-//     limit
-//   );
-
-//   // Mapeo explícito con tipo RawProductRow en el parámetro
-//   return (result as any[]).map((row: RawProductRow) => ({
-//     product_id: row.product_id,
-//     product_category: row.product_category,
-//     metric: Number(row.metric),
-//   }));
-
+// Implementación del método para obtener el ranking de productos, con construcción dinámica de la consulta SQL según los filtros recibidos.
 async getTopProducts(startDate: Date, endDate: Date, metric: string, limit: number, orderStatus?: string, productCategory?: string): Promise<ProductRanking[]> {
   const metricColumn = metric === 'revenue' ? 'fs.payment_value_allocated' : 'fs.item_price';
 
@@ -373,11 +243,8 @@ async getProductCategories(): Promise<string[]> {
     FROM dwh.dim_product
     ORDER BY category;
   `;
-  // return result.map((row: any) => ({...}));
-  return result.map((row: { category: string }) => row.category);
 
-  // en caso de que falle
-  // const result = await this.prisma.$queryRawUnsafe(`SELECT DISTINCT product_category AS category FROM dwh.dim_product ORDER BY category`) as any[];
-// return result.map((row: any) => row.category);
+  // Mapeamos el resultado para devolver solo un array de strings con las categorías.
+  return result.map((row: { category: string }) => row.category);
 }
 }

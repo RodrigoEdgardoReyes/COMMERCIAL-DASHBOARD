@@ -1,30 +1,22 @@
 import "dotenv/config";
-// Importa PrismaClient desde el cliente generado por Prisma. Esto permite interactuar con la base de datos usando los modelos definidos en schema.prisma.
-import { PrismaClient } from "../generated/prisma/client.js";
-
-// Importa el módulo fs (File System) de Node.js. Se utiliza para leer archivos desde el sistema, en este caso los CSV.
 import fs from "fs";
-
-// Importa la librería csv-parse. Esta librería convierte el contenido de los archivos CSV en objetos JavaScript con columnas nombradas.
 import { parse } from "csv-parse";
-
-// Importa PrismaPg, el adaptador para PostgreSQL. Este adaptador conecta Prisma con la base de datos PostgreSQL usando la cadena de conexión.
+import { PrismaClient } from "../generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-// Configuración de Prisma con el adaptador PostgreSQL.
-// Aquí se crea una instancia de PrismaClient usando el adaptador de Postgres.
-// Se conecta a la base de datos usando la variable de entorno DATABASE_URL.
+// =============================================================================
+//                 Prisma Client (adapter directo a PostgreSQL) 
+// =============================================================================
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: process.env.DATABASE_URL,
   }),
 });
 
-// ==================== CARGA RAW ====================
+// ==================== CARGA RAW (desde CSV a tablas raw.*)====================
 
-// Orders
-// Función asíncrona para cargar los datos de órdenes desde el CSV.
-// Se usa fs.createReadStream para leer el archivo y csv-parse para convertirlo en objetos.
+
+// Order: Función para cargar los datos de órdenes desde el CSV. Se usa fs.createReadStream para leer el archivo y csv-parse para convertirlo en objetos.
 async function loadRawOrders() {
   // Se crea un parser que lee el archivo CSV y lo convierte en filas con columnas nombradas.
   const parser = fs
@@ -57,8 +49,7 @@ async function loadRawOrders() {
   console.log("RAW Orders cargados:", rows.length);
 }
 
-// Order Items
-// Función para cargar los ítems de las órdenes desde el CSV correspondiente.
+// Order Items: Función para cargar los ítems de las órdenes desde el CSV correspondiente.
 async function loadRawOrderItems() {
   // Se crea el parser para leer el archivo olist_order_items_dataset.csv.
   const parser = fs
@@ -86,8 +77,7 @@ async function loadRawOrderItems() {
   console.log("RAW Order Items cargados:", rows.length);
 }
 
-// Order Payments
-// Función para cargar los pagos de las órdenes desde el CSV.
+// Order Payments: Función para cargar los pagos de las órdenes desde el CSV.
 async function loadRawOrderPayments() {
   const parser = fs
     .createReadStream("data/olist_order_payments_dataset.csv")
@@ -110,8 +100,7 @@ async function loadRawOrderPayments() {
   console.log("RAW Order Payments cargados:", rows.length);
 }
 
-// Products
-// Función para cargar los productos desde el CSV.
+// Products: Función para cargar los productos desde el CSV.
 async function loadRawProducts() {
   const parser = fs
     .createReadStream("data/olist_products_dataset.csv")
@@ -152,8 +141,7 @@ async function loadRawProducts() {
   console.log("RAW Products cargados:", rows.length);
 }
 
-// Customers
-// Función para cargar los clientes desde el CSV.
+// Customers: Función para cargar los clientes desde el CSV.
 async function loadRawCustomers() {
   const parser = fs
     .createReadStream("data/olist_customers_dataset.csv")
@@ -176,8 +164,8 @@ async function loadRawCustomers() {
   console.log("RAW Customers cargados:", rows.length);
 }
 
-// Product Category Translation
-// Función para cargar la traducción de categorías de producto desde el CSV.
+
+// Product Category TranslationFunción: para cargar la traducción de categorías de producto desde el CSV.
 async function loadRawCategoryTranslation() {
   const parser = fs
     .createReadStream("data/product_category_name_translation.csv")
@@ -201,7 +189,10 @@ async function loadRawCategoryTranslation() {
   console.log("RAW Category Translation cargados:", rows.length);
 }
 
-// ==================== TRANSFORMACIÓN RAW → CLEAN ====================
+// =============================================================================
+//              TRANSFORMACIÓN RAW → CLEAN (corrección de tipos)
+// =============================================================================
+
 
 async function transformRawToClean() {
   // Órdenes
@@ -267,7 +258,10 @@ async function transformRawToClean() {
   console.log("Transformación RAW → CLEAN completada");
 }
 
-// ==================== POBLAR DWH ====================
+// =============================================================================
+//                      POBLACION DEL MODELO ESTRELLA - DWH 
+// =============================================================================
+
 
 // Pobla la dimensión de clientes con datos únicos desde CLEAN.
 async function populateDimCustomer() {
@@ -366,11 +360,16 @@ async function populateFactSales() {
     JOIN dwh.dim_customer dc ON dc.customer_id = o.customer_id
     JOIN dwh.dim_product dp ON dp.product_id = oi.product_id
     JOIN dwh.dim_order ord ON ord.order_id = o.order_id
-    JOIN dwh.dim_date dd ON dd.full_date::date = o.order_purchase_timestamp::date;
+    JOIN dwh.dim_date dd ON dd.full_date::date = o.order_purchase_timestamp::date
+    ON CONFLICT (order_id, order_item_id) DO NOTHING; 
    `);
 
   console.log("Fact Sales poblada con prorrateo de pagos");
 }
+
+//==============================================================================
+//                     ORQUESTADOR PRINCIPAL
+//==============================================================================
 
 // Función principal que ejecuta todo el flujo ETL en orden.
 async function main() {

@@ -7,9 +7,6 @@ import { PrismaClient } from '../../../../generated/prisma/client.js';
 
 // Creación del router de Express.
 const router = Router();
-
-// Instancia dependencias siguiendo la arquitectura hexagonal.
-// const prismaClient = new PrismaClient();
 if(!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL no esta definida en kpiroutes");
   }
