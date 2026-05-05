@@ -5,6 +5,7 @@ interface KPICardProps {
   format?: 'number' | 'decimal' | 'percent' | 'currency';
 }
 
+// Componente para mostrar un KPI individual en una tarjeta. Formatea el valor según el tipo especificado (número, decimal, porcentaje o moneda) y muestra un título descriptivo.
 export default function KPICard({ title, value, prefix = '', format = 'currency' }: KPICardProps) {
   const formattedValue = () => {
     if (format === 'percent') return `${(value * 100).toFixed(2)}%`;

@@ -14,6 +14,7 @@ interface TrendChartProps {
   className?: string;
 }
 
+// Componente para mostrar la tendencia de revenue y órdenes a lo largo del tiempo. Utiliza Recharts para renderizar un gráfico de líneas con dos ejes Y (uno para revenue y otro para órdenes) y un eje X para las fechas. Recibe los datos ya formateados desde el componente padre y los muestra en el gráfico. Permite personalizar estilos a través de la prop className.
 export default function TrendChart({ data, className }: TrendChartProps) {
   return (
     <div className={`bg-white rounded-lg shadow p-4 ${className}`}>

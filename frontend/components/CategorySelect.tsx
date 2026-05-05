@@ -7,6 +7,7 @@ interface CategorySelectProps {
   onChange: (category: string) => void;
 }
 
+// Componente para seleccionar la categoría de producto. Carga las categorías disponibles desde el backend y las muestra en un dropdown.
 export default function CategorySelect({ value, onChange }: CategorySelectProps) {
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

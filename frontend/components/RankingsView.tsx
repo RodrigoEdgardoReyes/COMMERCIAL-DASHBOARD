@@ -10,6 +10,7 @@ interface RankingsProps {
   productCategory: string;
 }
 
+// Componente para mostrar el ranking de productos según la métrica seleccionada (GMV o Revenue). Se encarga de cargar los datos desde el backend según los filtros aplicados y la métrica seleccionada, y muestra el resultado en una tabla ordenada por posición. Si no hay datos, muestra un mensaje indicándolo.
 export default function RankingsView({ from, to, orderStatus, productCategory }: RankingsProps) {
   const [metric, setMetric] = useState<'gmv' | 'revenue'>('gmv');
   const [limit] = useState(10);

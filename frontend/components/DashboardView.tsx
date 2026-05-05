@@ -27,6 +27,7 @@ interface DashboardProps {
   productCategory: string;
 }
 
+// Componente principal del dashboard que muestra los KPIs y la tendencia de revenue. Se encarga de cargar los datos desde el backend según los filtros aplicados.
 export default function DashboardView({
   from,
   to,

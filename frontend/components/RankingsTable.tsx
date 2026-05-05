@@ -3,6 +3,7 @@ interface RankingsTableProps {
   metric: 'gmv' | 'revenue';
 }
 
+// Componente para mostrar el ranking de productos según la métrica seleccionada (GMV o Revenue). Recibe los datos ya formateados desde el componente padre y los muestra en una tabla ordenada por posición. Si no hay datos, muestra un mensaje indicándolo.
 export default function RankingsTable({ data, metric }: RankingsTableProps) {
   if (!data || data.length === 0) {
     return <p className="text-center text-gray-500">No hay productos para mostrar.</p>;

@@ -2,6 +2,7 @@
 
 import CategorySelect from './CategorySelect';
 
+// Barra de filtros para seleccionar rango de fechas, estado de la orden y categoría del producto. Se comunica con el componente padre a través de callbacks para actualizar los filtros aplicados en el dashboard.
 interface FilterBarProps {
   from: string;
   to: string;
@@ -13,15 +14,16 @@ interface FilterBarProps {
   onProductCategoryChange: (value: string) => void;
 }
 
+// Opciones de estado de la orden. Deberían coincidir con los valores que el backend espera para filtrar correctamente.
 const ORDER_STATUS_OPTIONS = [
   { value: '', label: 'Todos los estados' },
   { value: 'delivered', label: 'Entregado' },
   { value: 'canceled', label: 'Cancelado' },
   { value: 'shipped', label: 'Enviado' },
   { value: 'processing', label: 'Procesando' },
-  // Añade otros si existen en tu dataset
 ];
 
+// Barra de filtros para seleccionar rango de fechas, estado de la orden y categoría del producto. Se comunica con el componente padre a través de callbacks para actualizar los filtros aplicados en el dashboard.
 export default function FilterBar({
   from, to, onFromChange, onToChange,
   orderStatus, onOrderStatusChange,
